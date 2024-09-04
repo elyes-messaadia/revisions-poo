@@ -1,16 +1,24 @@
 <?php
 
-require_once 'db.php'; // Connexion à la base de données
+require_once 'db.php';          // Connexion à la base de données
+require_once 'Product.php';      // Classe Product
 
-// Récupération de tous les produits
-$query = $pdo->query("SELECT * FROM product");
-$products = $query->fetchAll(PDO::FETCH_ASSOC);
+// Création d'une nouvelle instance de Product (vide pour le moment)
+$product = new Product();
 
-// Affichage des produits
-foreach ($products as $product) {
-    echo "Produit : " . $product['name'] . "<br>";
-    echo "Description : " . $product['description'] . "<br>";
-    echo "Prix : " . $product['price'] . " centimes<br>";
-    echo "Quantité : " . $product['quantity'] . "<br>";
-    echo "Catégorie ID : " . $product['category_id'] . "<br><br>";
+// Utiliser findOneById pour récupérer le produit avec l'ID 7 (par exemple)
+if ($product->findOneById($pdo, 7)) {
+    // Si le produit est trouvé, on affiche ses détails
+    echo "Produit ID : " . $product->getId() . "<br>";
+    echo "Nom : " . $product->getName() . "<br>";
+    echo "Photos : " . implode(', ', $product->getPhotos()) . "<br>";
+    echo "Prix : " . $product->getPrice() . "<br>";
+    echo "Description : " . $product->getDescription() . "<br>";
+    echo "Quantité : " . $product->getQuantity() . "<br>";
+    echo "Catégorie ID : " . $product->getCategoryId() . "<br>";
+    echo "Créé le : " . $product->getCreatedAt()->format('Y-m-d H:i:s') . "<br>";
+    echo "Mis à jour le : " . $product->getUpdatedAt()->format('Y-m-d H:i:s') . "<br>";
+} else {
+    // Si le produit n'est pas trouvé, afficher un message
+    echo "Le produit avec l'ID 7 n'existe pas.";
 }

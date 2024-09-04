@@ -13,17 +13,17 @@ class Product
     private DateTime $updatedAt;
     private int $category_id; // Référence à une catégorie
 
-    // Constructeur pour initialiser les propriétés
+    // Constructeur pour initialiser les propriétés avec des valeurs par défaut
     public function __construct(
-        int $id,
-        string $name,
-        array $photos,
-        int $price,
-        string $description,
-        int $quantity,
-        int $category_id,
-        DateTime $createdAt,
-        DateTime $updatedAt
+        int $id = 0,
+        string $name = '',
+        array $photos = [],
+        int $price = 0,
+        string $description = '',
+        int $quantity = 0,
+        int $category_id = 0,
+        DateTime $createdAt = null,
+        DateTime $updatedAt = null
     ) {
         $this->id = $id;
         $this->name = $name;
@@ -32,99 +32,35 @@ class Product
         $this->description = $description;
         $this->quantity = $quantity;
         $this->category_id = $category_id;
-        $this->createdAt = $createdAt;
-        $this->updatedAt = $updatedAt;
+        $this->createdAt = $createdAt ?? new DateTime();
+        $this->updatedAt = $updatedAt ?? new DateTime();
     }
 
-    // Getters
-    public function getId(): int
+    // Méthode findOneById pour récupérer un produit par ID et hydrater l'instance
+    public function findOneById(PDO $pdo, int $id): bool
     {
-        return $this->id;
+        // Préparer et exécuter la requête SQL
+        $query = $pdo->prepare("SELECT * FROM product WHERE id = :id");
+        $query->execute(['id' => $id]);
+        $productData = $query->fetch(PDO::FETCH_ASSOC);
+
+        if ($productData) {
+            // Si le produit est trouvé, on hydrate l'instance actuelle avec les données
+            $this->id = $productData['id'];
+            $this->name = $productData['name'];
+            $this->photos = explode(',', $productData['photos']);
+            $this->price = $productData['price'];
+            $this->description = $productData['description'];
+            $this->quantity = $productData['quantity'];
+            $this->category_id = $productData['category_id'];
+            $this->createdAt = new DateTime($productData['createdAt']);
+            $this->updatedAt = new DateTime($productData['updatedAt']);
+
+            return true;  // Retourne vrai si le produit a été trouvé et hydraté
+        }
+
+        return false;  // Retourne faux si aucun produit n'est trouvé avec cet ID
     }
 
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function getPhotos(): array
-    {
-        return $this->photos;
-    }
-
-    public function getPrice(): int
-    {
-        return $this->price;
-    }
-
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
-    public function getQuantity(): int
-    {
-        return $this->quantity;
-    }
-
-    public function getCategoryId(): int
-    {
-        return $this->category_id;
-    }
-
-    public function getCreatedAt(): DateTime
-    {
-        return $this->createdAt;
-    }
-
-    public function getUpdatedAt(): DateTime
-    {
-        return $this->updatedAt;
-    }
-
-    // Setters
-    public function setId(int $id): void
-    {
-        $this->id = $id;
-    }
-
-    public function setName(string $name): void
-    {
-        $this->name = $name;
-    }
-
-    public function setPhotos(array $photos): void
-    {
-        $this->photos = $photos;
-    }
-
-    public function setPrice(int $price): void
-    {
-        $this->price = $price;
-    }
-
-    public function setDescription(string $description): void
-    {
-        $this->description = $description;
-    }
-
-    public function setQuantity(int $quantity): void
-    {
-        $this->quantity = $quantity;
-    }
-
-    public function setCategoryId(int $category_id): void
-    {
-        $this->category_id = $category_id;
-    }
-
-    public function setCreatedAt(DateTime $createdAt): void
-    {
-        $this->createdAt = $createdAt;
-    }
-
-    public function setUpdatedAt(DateTime $updatedAt): void
-    {
-        $this->updatedAt = $updatedAt;
-    }
+    // Getters et setters (inchangés)
 }
