@@ -13,17 +13,17 @@ class Product
     private DateTime $updatedAt;
     private int $category_id; // Référence à une catégorie
 
-    // Constructeur pour initialiser les propriétés
+    // Constructeur pour initialiser les propriétés avec des valeurs par défaut
     public function __construct(
-        int $id,
-        string $name,
-        array $photos,
-        int $price,
-        string $description,
-        int $quantity,
-        int $category_id,
-        DateTime $createdAt,
-        DateTime $updatedAt
+        int $id = 0,
+        string $name = '',
+        array $photos = [],
+        int $price = 0,
+        string $description = '',
+        int $quantity = 0,
+        int $category_id = 0,
+        DateTime $createdAt = null,
+        DateTime $updatedAt = null
     ) {
         $this->id = $id;
         $this->name = $name;
@@ -32,8 +32,35 @@ class Product
         $this->description = $description;
         $this->quantity = $quantity;
         $this->category_id = $category_id;
-        $this->createdAt = $createdAt;
-        $this->updatedAt = $updatedAt;
+        $this->createdAt = $createdAt ?? new DateTime();
+        $this->updatedAt = $updatedAt ?? new DateTime();
+    }
+
+    // Méthode findAll pour récupérer tous les produits et retourner un tableau d'instances Product
+    public static function findAll(PDO $pdo): array
+    {
+        // Préparer et exécuter la requête SQL pour récupérer tous les produits
+        $query = $pdo->query("SELECT * FROM product");
+        $productsData = $query->fetchAll(PDO::FETCH_ASSOC);
+
+        $products = [];
+
+        // Hydrater les objets Product avec les données récupérées
+        foreach ($productsData as $productData) {
+            $products[] = new Product(
+                $productData['id'],
+                $productData['name'],
+                explode(',', $productData['photos']),
+                $productData['price'],
+                $productData['description'],
+                $productData['quantity'],
+                $productData['category_id'],
+                new DateTime($productData['createdAt']),
+                new DateTime($productData['updatedAt'])
+            );
+        }
+
+        return $products; // Retourne un tableau contenant toutes les instances de Product
     }
 
     // Getters

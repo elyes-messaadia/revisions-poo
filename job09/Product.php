@@ -13,17 +13,17 @@ class Product
     private DateTime $updatedAt;
     private int $category_id; // Référence à une catégorie
 
-    // Constructeur pour initialiser les propriétés
+    // Constructeur pour initialiser les propriétés avec des valeurs par défaut
     public function __construct(
-        int $id,
-        string $name,
-        array $photos,
-        int $price,
-        string $description,
-        int $quantity,
-        int $category_id,
-        DateTime $createdAt,
-        DateTime $updatedAt
+        int $id = 0,
+        string $name = '',
+        array $photos = [],
+        int $price = 0,
+        string $description = '',
+        int $quantity = 0,
+        int $category_id = 0,
+        DateTime $createdAt = null,
+        DateTime $updatedAt = null
     ) {
         $this->id = $id;
         $this->name = $name;
@@ -32,8 +32,38 @@ class Product
         $this->description = $description;
         $this->quantity = $quantity;
         $this->category_id = $category_id;
-        $this->createdAt = $createdAt;
-        $this->updatedAt = $updatedAt;
+        $this->createdAt = $createdAt ?? new DateTime();
+        $this->updatedAt = $updatedAt ?? new DateTime();
+    }
+
+    // Méthode pour créer un nouveau produit en base de données
+    public function create(PDO $pdo): ?Product
+    {
+        // Préparer la requête SQL pour insérer un nouveau produit
+        $query = $pdo->prepare("
+            INSERT INTO product (name, photos, price, description, quantity, createdAt, updatedAt, category_id)
+            VALUES (:name, :photos, :price, :description, :quantity, :createdAt, :updatedAt, :category_id)
+        ");
+
+        // Exécuter la requête avec les propriétés de l'instance actuelle
+        $success = $query->execute([
+            'name' => $this->name,
+            'photos' => implode(',', $this->photos), // Convertir le tableau de photos en chaîne
+            'price' => $this->price,
+            'description' => $this->description,
+            'quantity' => $this->quantity,
+            'createdAt' => $this->createdAt->format('Y-m-d H:i:s'),
+            'updatedAt' => $this->updatedAt->format('Y-m-d H:i:s'),
+            'category_id' => $this->category_id
+        ]);
+
+        if ($success) {
+            // Récupérer l'ID du produit nouvellement inséré
+            $this->id = $pdo->lastInsertId();
+            return $this; // Retourne l'instance actuelle avec l'ID mis à jour
+        }
+
+        return false; // Retourne false si l'insertion échoue
     }
 
     // Getters
@@ -128,3 +158,4 @@ class Product
         $this->updatedAt = $updatedAt;
     }
 }
+
